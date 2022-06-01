@@ -44,6 +44,7 @@ namespace ExtraButtons
                     PlayerControl.LocalPlayer.RpcSetName($"<color=green>{currentName}");
                     if (ReadyButton.buttonLabelText.text == "Ready")
                     {
+                        
                         ReadyButton.OverrideText("UnReady");
                         ReadyButton.OverrideColor(Color.green);
                     }

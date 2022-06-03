@@ -1,34 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<DebugType>embedded</DebugType>
+		<Nullable>enable</Nullable>
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Nullable>enable</Nullable>
-	  <Version>1.0.0</Version>
-	  <GameVersion>D:\AmongUsModded\BepInEx\plugins</GameVersion>
+		<Version>1.0.0</Version>
+		<Description>Among us button mod!</Description>
+		<Authors>Om3ga</Authors>
+	</PropertyGroup>
 
-	  <Description>Among us hatpack with different hats from different artists!</Description>
-	  <Authors>Om3ga</Authors>
-  </PropertyGroup>
+	<PropertyGroup>
+		<GamePlatform Condition="'$(GamePlatform)' == ''">Steam</GamePlatform>
+		<GameVersion Condition="'$(GamePlatform)' == 'Steam'">2022.3.29</GameVersion>
+		<GameVersion Condition="'$(GamePlatform)' == 'Itch'">2022.3.29</GameVersion>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Reactor" Version="1.0.0-rc.1" />
+		<PackageReference Include="Reactor" Version="1.2.5" />
+		<PackageReference Include="BepInEx.IL2CPP" Version="6.0.0-be.567" />
+		<PackageReference Include="AmongUs.GameLibs.$(GamePlatform)" Version="$(GameVersion)" PrivateAssets="all" />
+
+		<PackageReference Include="BepInEx.AutoPlugin" Version="1.0.1" PrivateAssets="all" />
+		<PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="1.1.1" PrivateAssets="all" />
 	</ItemGroup>
 
-  <Target Name="Copy" AfterTargets="Build">
-	  <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFiles="$(AmongUs)/BepInEx/plugins/$(AssemblyName).dll" />
-  </Target>
-
-  <ItemGroup>
-	  <Reference Include="$(AmongUs)\BepInEx\core\*.dll">
-		  <Private>false</Private>
-	  </Reference>
-
-	  <Reference Include="$(AmongUs)\BepInEx\unhollowed\*.dll">
-		  <Private>false</Private>
-	  </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
+	<Target Name="Copy" AfterTargets="Build" Condition="'$(AmongUs)' != ''">
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(AmongUs)/BepInEx/plugins/" UseSymboliclinksIfPossible="true" />
+	</Target>
 </Project>

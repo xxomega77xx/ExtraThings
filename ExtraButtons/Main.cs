@@ -11,7 +11,7 @@ namespace ExtraButtons
     [BepInProcess("Among Us.exe")]
     public class Main : BasePlugin
     {
-        
+
         public const string Version = "1.0.0";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
@@ -21,7 +21,7 @@ namespace ExtraButtons
             Harmony.PatchAll();
         }
 
-        [HarmonyPatch(typeof(LobbyBehaviour), nameof(HudManager.Start))]
+        [HarmonyPatch(typeof(LobbyBehaviour), nameof(LobbyBehaviour.Start))]
         public class LobbyPatch
         {
             public static void Prefix(HudManager __instance)
@@ -44,7 +44,7 @@ namespace ExtraButtons
                     PlayerControl.LocalPlayer.RpcSetName($"<color=green>{currentName}");
                     if (ReadyButton.buttonLabelText.text == "Ready")
                     {
-                        
+
                         ReadyButton.OverrideText("UnReady");
                         ReadyButton.OverrideColor(Color.green);
                     }
@@ -57,13 +57,12 @@ namespace ExtraButtons
                 }));
 
             }
-
-
         }
+
         [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.OnDestroy))]
         public class OnGameStart
         {
-            
+
             public static void Prefix(IntroCutscene __instance)
             {
                 var currentName = PlayerControl.LocalPlayer.name;
@@ -76,7 +75,7 @@ namespace ExtraButtons
                 UnityEngine.Object.Destroy(ReadyButton);
                 CHLog.Log(LogLevel.Info, "ReadyButton Destroyed.");
 
-                PlayerControl.LocalPlayer.SetName($"<color=white>{currentName}");
+                PlayerControl.LocalPlayer.RpcSetName($"<color=white>{currentName}");
             }
         }
 
@@ -95,12 +94,12 @@ namespace ExtraButtons
         //        RaiseLowerHandButton.Awake();
         //        RaiseLowerHandButton.graphic.SetCooldownNormalizedUvs();
         //        var currentName = PlayerControl.LocalPlayer.name;
-                
+
         //        var passiveButton = RaiseLowerHandButton.GetComponent<PassiveButton>();
         //        passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
         //        passiveButton.OnClick.AddListener((Action)(() =>
         //        {
-                    
+
         //            PlayerControl.LocalPlayer.SetName($"<color=blue>{currentName} Hand Raised!");
         //            PlayerControl.LocalPlayer.nameText.name = $"<color=blue>{currentName} Hand Raised!";
         //            PlayerControl.LocalPlayer.RpcSendChat($"{currentName} raised hand");
@@ -113,7 +112,7 @@ namespace ExtraButtons
         //            {
         //                RaiseLowerHandButton.OverrideText("Raise Hand");
         //                PlayerControl.LocalPlayer.SetName(currentName);
-                        
+
         //            }
         //        }
         //        ));

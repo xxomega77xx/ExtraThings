@@ -26,35 +26,43 @@ namespace ExtraButtons
         {
             public static void Prefix(HudManager __instance)
             {
-                var ReadyButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
-                UnityEngine.Object.Destroy(ReadyButton.GetComponentInChildren<TextTranslatorTMP>());
-                ReadyButton.name = "ReadyButton";
-                ReadyButton.OverrideText("Ready");
-                ReadyButton.Show();
-                ReadyButton.enabled = true;
-                ReadyButton.Awake();
-                ReadyButton.OverrideColor(color: Color.red);
-                ReadyButton.transform.localPosition = new Vector3((float)ReadyButton.transform.localPosition.x - 2f, (float)ReadyButton.gameObject.transform.localPosition.y, (float)ReadyButton.gameObject.transform.position.z);
-                ReadyButton.graphic.SetCooldownNormalizedUvs();
-                var currentName = PlayerControl.LocalPlayer.name;
-                var passiveButton = ReadyButton.GetComponent<PassiveButton>();
-                passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-                passiveButton.OnClick.AddListener((Action)(() =>
+                var CHLog = new ManualLogSource("ExtraButtons");
+                BepInEx.Logging.Logger.Sources.Add(CHLog);
+                try
                 {
-                    PlayerControl.LocalPlayer.RpcSetName($"<color=green>{currentName}");
-                    if (ReadyButton.buttonLabelText.text == "Ready")
+                    CHLog.Log(LogLevel.Info, "Starting creation of buttons");
+                    var ReadyButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
+                    ReadyButton.OverrideText("Ready");
+                    ReadyButton.OverrideColor(color: Color.red);
+                    ReadyButton.transform.localPosition = new Vector3((float)ReadyButton.transform.localPosition.x - 2f, (float)ReadyButton.gameObject.transform.localPosition.y, (float)ReadyButton.gameObject.transform.position.z);
+                    ReadyButton.graphic.SetCooldownNormalizedUvs();
+                    ReadyButton.currentTarget = PlayerControl.LocalPlayer.closest;
+                    var currentName = PlayerControl.LocalPlayer.name;
+                    var passiveButton = ReadyButton.GetComponent<PassiveButton>();
+                    passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+                    passiveButton.OnClick.AddListener((Action)(() =>
                     {
+                        PlayerControl.LocalPlayer.RpcSetName($"<color=green>{currentName}");
+                        if (ReadyButton.buttonLabelText.text == "Ready")
+                        {
 
-                        ReadyButton.OverrideText("UnReady");
-                        ReadyButton.OverrideColor(Color.green);
-                    }
-                    else
-                    {
-                        PlayerControl.LocalPlayer.RpcSetName($"<color=red>{currentName}");
-                        ReadyButton.OverrideText("Ready");
-                        ReadyButton.OverrideColor(Color.red);
-                    }
-                }));
+                            ReadyButton.OverrideText("UnReady");
+                            ReadyButton.OverrideColor(Color.green);
+                        }
+                        else
+                        {
+                            PlayerControl.LocalPlayer.RpcSetName($"<color=red>{currentName}");
+                            ReadyButton.OverrideText("Ready");
+                            ReadyButton.OverrideColor(Color.red);
+                        }
+                    }));
+                }
+                catch (Exception e)
+                {
+                    CHLog.Log(LogLevel.Error, $"{e.InnerException.StackTrace}");
+                    throw;
+                }
+               
 
             }
         }
@@ -67,7 +75,7 @@ namespace ExtraButtons
             {
                 var currentName = PlayerControl.LocalPlayer.name;
                 GameObject ReadyButton;
-                var CHLog = new ManualLogSource("StuffandThings");
+                var CHLog = new ManualLogSource("ExtraButtons");
                 BepInEx.Logging.Logger.Sources.Add(CHLog);
 
                 ReadyButton = GameObject.Find("ReadyButton");

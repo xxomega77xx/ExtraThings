@@ -2,8 +2,13 @@
 using BepInEx.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
+using Reactor;
+using Reactor.Extensions;
 using System;
 using System.Collections;
+using System.Linq;
+using System.Reflection;
+using UnhollowerBaseLib;
 using UnityEngine;
 
 namespace ExtraButtons
@@ -12,13 +17,21 @@ namespace ExtraButtons
     [BepInProcess("Among Us.exe")]
     public class Main : BasePlugin
     {
-        
+
         public const string Version = "1.0.0";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
-
+        public static Sprite Ready;
+        public static Sprite NotReady;
+        public static Sprite RaiseHand;
+        public static Sprite LowerHand;
+        public static Sprite MeetingOverlay;
         public override void Load()
         {
+            Ready = CreateSprite("ExtraButtons.Assets.ready_button.png");
+            NotReady = CreateSprite("ExtraButtons.Assets.notreadybutton.png");
+            RaiseHand = CreateSprite("ExtraButtons.Assets.raise_hand_glow_button.png");
+            MeetingOverlay = CreateSprite("ExtraButtons.Assets.raise_hand_button_no_glow.png");
             Harmony.PatchAll();
         }
 
@@ -42,13 +55,14 @@ namespace ExtraButtons
                     CHLog.Log(LogLevel.Info, "Starting creation of buttons");
 
                     var ReadyButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
+                    ReadyButton.graphic.sprite = Ready;
                     UnityEngine.Object.Destroy(ReadyButton.GetComponentInChildren<TextTranslatorTMP>());
                     CHLog.Log(LogLevel.Info, "Button Grabbed");
                     ReadyButton.name = "ReadyButton";
                     CHLog.Log(LogLevel.Info, "button name set");
-                    ReadyButton.OverrideText("Ready");
+                    ReadyButton.OverrideText("");
                     CHLog.Log(LogLevel.Info, "button text set");
-                    ReadyButton.OverrideColor(color: Color.red);
+                    ReadyButton.OverrideColor(color: Color.green);
                     CHLog.Log(LogLevel.Info, "button color set");
                     ReadyButton.transform.localPosition = new Vector3((float)ReadyButton.transform.localPosition.x - 2f, (float)ReadyButton.gameObject.transform.localPosition.y, (float)ReadyButton.gameObject.transform.position.z);
                     CHLog.Log(LogLevel.Info, "button position set");
@@ -65,13 +79,14 @@ namespace ExtraButtons
                         if (currentName.Contains(">"))
                         {
                             var modifiedName = currentName.Split(">", StringSplitOptions.RemoveEmptyEntries);
-                            if (ReadyButton.buttonLabelText.text == "Ready")
+                            if (ReadyButton.graphic.color == Color.green)
                             {
                                 CHLog.Log(LogLevel.Info, $"Current name : {modifiedName[1]}");
                                 PlayerControl.LocalPlayer.CheckName($"<color=green>{modifiedName[1]}");
                                 CHLog.Log(LogLevel.Info, "Button Clicked player set to green");
-                                ReadyButton.OverrideText("UnReady");
-                                ReadyButton.OverrideColor(Color.green);
+                                ReadyButton.OverrideColor(Color.red);
+                                ReadyButton.graphic.sprite = NotReady;
+
                             }
                             else
                             {
@@ -79,31 +94,31 @@ namespace ExtraButtons
                                 CHLog.Log(LogLevel.Info, "Button Clicked player set to red");
                                 CHLog.Log(LogLevel.Info, $"Button text {ReadyButton.buttonLabelText.text}");
                                 PlayerControl.LocalPlayer.CheckName($"<color=red>{modifiedName[1]}");
-                                ReadyButton.OverrideText("Ready");
-                                ReadyButton.OverrideColor(Color.red);
+                                ReadyButton.graphic.sprite = Ready;
+                                ReadyButton.OverrideColor(Color.green);
                             }
                         }
                         else
                         {
-                            if (ReadyButton.buttonLabelText.text == "Ready")
+                            if (ReadyButton.graphic.color == Color.green)
                             {
                                 PlayerControl.LocalPlayer.CheckName($"<color=green>{currentName}");
                                 CHLog.Log(LogLevel.Info, "Button Clicked player set to green");
-                                ReadyButton.OverrideText("UnReady");
-                                ReadyButton.OverrideColor(Color.green);
+                                ReadyButton.OverrideColor(Color.red);
+                                ReadyButton.graphic.sprite = NotReady;
                             }
                             else
                             {
                                 CHLog.Log(LogLevel.Info, "Button Clicked player set to red");
                                 CHLog.Log(LogLevel.Info, $"Button text {ReadyButton.buttonLabelText.text}");
                                 PlayerControl.LocalPlayer.CheckName($"<color=red>{currentName}");
-                                ReadyButton.OverrideText("Ready");
-                                ReadyButton.OverrideColor(Color.red);
+                                ReadyButton.OverrideColor(Color.green);
+                                ReadyButton.graphic.sprite = Ready;
                             }
                         }
-                        
-                        
-                        
+
+
+
                     }));
 
 
@@ -142,10 +157,11 @@ namespace ExtraButtons
             public static void Prefix(MeetingHud __instance)
             {
                 var RaiseLowerHandButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
+                RaiseLowerHandButton.graphic.sprite = RaiseHand;
                 UnityEngine.Object.Destroy(RaiseLowerHandButton.GetComponentInChildren<TextTranslatorTMP>());
                 RaiseLowerHandButton.transform.localPosition = new Vector3((float)RaiseLowerHandButton.transform.localPosition.x - 5f, (float)RaiseLowerHandButton.gameObject.transform.localPosition.y, (float)RaiseLowerHandButton.gameObject.transform.position.z);
-                RaiseLowerHandButton.name = "RaiseHandButton";
-                RaiseLowerHandButton.OverrideText("Raise Hand");
+                RaiseLowerHandButton.name = "RaiseHandButton";                
+                RaiseLowerHandButton.OverrideColor(Color.green);
                 RaiseLowerHandButton.Show();
                 RaiseLowerHandButton.enabled = true;
                 RaiseLowerHandButton.Awake();
@@ -156,18 +172,21 @@ namespace ExtraButtons
                 passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
                 passiveButton.OnClick.AddListener((Action)(() =>
                 {
-
-                    PlayerControl.LocalPlayer.CheckName($"<color=blue>{currentName} Hand Raised!");
-                    PlayerControl.LocalPlayer.nameText.name = $"<color=blue>{currentName} Hand Raised!";
-                    PlayerControl.LocalPlayer.RpcSendChat($"{currentName} raised hand");
-                    if (RaiseLowerHandButton.buttonLabelText.text == "Raise Hand")
+                    
+                    if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
-                        RaiseLowerHandButton.OverrideText("Lower Hand");
+                        var playerstate = __instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
+                        playerstate.Overlay.gameObject.SetActive(true);
+                        playerstate.Overlay.color = Color.cyan;
+                        playerstate.Overlay.sprite = RaiseHand;
+                        RaiseLowerHandButton.OverrideColor(Color.red);
                     }
                     else
                     {
-                        RaiseLowerHandButton.OverrideText("Raise Hand");
-                        PlayerControl.LocalPlayer.RpcSendChat($"{currentName} lowered hand");
+                        var playerstate = __instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
+                        playerstate.Overlay.gameObject.SetActive(false);
+                        playerstate.Overlay.color = Color.clear;
+                        RaiseLowerHandButton.OverrideColor(Color.green);
 
                     }
                 }
@@ -192,5 +211,29 @@ namespace ExtraButtons
             }
         }
 
+        private static DLoadImage _iCallLoadImage;
+        public static Sprite CreateSprite(string name)
+        {
+            var pixelsPerUnit = 100f;
+            var pivot = new Vector2(0.5f, 0.5f);
+
+            var assembly = Assembly.GetExecutingAssembly();
+            var tex = GUIExtensions.CreateEmptyTexture();
+            var imageStream = assembly.GetManifestResourceStream(name);
+            var img = imageStream.ReadFully();
+            LoadImage(tex, img, true);
+            tex.DontDestroy();
+            var sprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), pivot, pixelsPerUnit);
+            sprite.DontDestroy();
+            return sprite;
+
+        }
+        public static void LoadImage(Texture2D tex, byte[] data, bool markNonReadable)
+        {
+            _iCallLoadImage ??= IL2CPP.ResolveICall<DLoadImage>("UnityEngine.ImageConversion::LoadImage");
+            var il2CPPArray = (Il2CppStructArray<byte>)data;
+            _iCallLoadImage.Invoke(tex.Pointer, il2CPPArray.Pointer, markNonReadable);
+        }
+        private delegate bool DLoadImage(IntPtr tex, IntPtr data, bool markNonReadable);
     }
 }

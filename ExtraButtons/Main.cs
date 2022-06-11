@@ -2,10 +2,8 @@
 using BepInEx.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
-using Reactor;
 using Reactor.Extensions;
 using System;
-using System.Collections;
 using System.Linq;
 using System.Reflection;
 using UnhollowerBaseLib;
@@ -26,12 +24,18 @@ namespace ExtraButtons
         public static Sprite RaiseHand;
         public static Sprite LowerHand;
         public static Sprite MeetingOverlay;
+        public static int position = 0;
+        public static int samplerate = 44100;
+        public static float frequency = 440;
         public override void Load()
         {
+            
             Ready = CreateSprite("ExtraButtons.Assets.ready_button.png");
             NotReady = CreateSprite("ExtraButtons.Assets.notreadybutton.png");
             RaiseHand = CreateSprite("ExtraButtons.Assets.raise_hand_glow_button.png");
-            MeetingOverlay = CreateSprite("ExtraButtons.Assets.raise_hand_button_no_glow.png");
+            MeetingOverlay = CreateSprite("ExtraButtons.Assets.hand_raise_overlay.png");
+            
+
             Harmony.PatchAll();
         }
 
@@ -56,6 +60,7 @@ namespace ExtraButtons
 
                     var ReadyButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                     ReadyButton.graphic.sprite = Ready;
+                    
                     UnityEngine.Object.Destroy(ReadyButton.GetComponentInChildren<TextTranslatorTMP>());
                     CHLog.Log(LogLevel.Info, "Button Grabbed");
                     ReadyButton.name = "ReadyButton";
@@ -86,7 +91,6 @@ namespace ExtraButtons
                                 CHLog.Log(LogLevel.Info, "Button Clicked player set to green");
                                 ReadyButton.OverrideColor(Color.red);
                                 ReadyButton.graphic.sprite = NotReady;
-
                             }
                             else
                             {
@@ -156,18 +160,27 @@ namespace ExtraButtons
         {
             public static void Prefix(MeetingHud __instance)
             {
+                var CHLog = new ManualLogSource("ExtraButtons");
+                BepInEx.Logging.Logger.Sources.Add(CHLog);
+                
+
+                var currentName = PlayerControl.LocalPlayer.name;
+                var playerstate = __instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
+                var currentBackground = playerstate.Background.sprite;                
                 var RaiseLowerHandButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                 RaiseLowerHandButton.graphic.sprite = RaiseHand;
                 UnityEngine.Object.Destroy(RaiseLowerHandButton.GetComponentInChildren<TextTranslatorTMP>());
                 RaiseLowerHandButton.transform.localPosition = new Vector3((float)RaiseLowerHandButton.transform.localPosition.x - 5f, (float)RaiseLowerHandButton.gameObject.transform.localPosition.y, (float)RaiseLowerHandButton.gameObject.transform.position.z);
-                RaiseLowerHandButton.name = "RaiseHandButton";                
+                RaiseLowerHandButton.name = "RaiseHandButton";
+                RaiseLowerHandButton.OverrideText("");
                 RaiseLowerHandButton.OverrideColor(Color.green);
-                RaiseLowerHandButton.Show();
-                RaiseLowerHandButton.enabled = true;
-                RaiseLowerHandButton.Awake();
+                if (!playerstate.AmDead)
+                {
+                    RaiseLowerHandButton.Show();
+                    RaiseLowerHandButton.enabled = true;
+                    RaiseLowerHandButton.Awake();
+                }
                 RaiseLowerHandButton.graphic.SetCooldownNormalizedUvs();
-                var currentName = PlayerControl.LocalPlayer.name;
-
                 var passiveButton = RaiseLowerHandButton.GetComponent<PassiveButton>();
                 passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
                 passiveButton.OnClick.AddListener((Action)(() =>
@@ -175,24 +188,20 @@ namespace ExtraButtons
                     
                     if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
-                        var playerstate = __instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
                         playerstate.Overlay.gameObject.SetActive(true);
-                        playerstate.Overlay.color = Color.cyan;
-                        playerstate.Overlay.sprite = RaiseHand;
+                        playerstate.Overlay.sprite = MeetingOverlay;
                         RaiseLowerHandButton.OverrideColor(Color.red);
+                        SoundManager.Instance.PlaySound(__instance.VoteSound, false, 10);
                     }
                     else
                     {
-                        var playerstate = __instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
                         playerstate.Overlay.gameObject.SetActive(false);
-                        playerstate.Overlay.color = Color.clear;
                         RaiseLowerHandButton.OverrideColor(Color.green);
 
                     }
                 }
                 ));
-
-
+               
             }
         }
 
@@ -235,5 +244,6 @@ namespace ExtraButtons
             _iCallLoadImage.Invoke(tex.Pointer, il2CPPArray.Pointer, markNonReadable);
         }
         private delegate bool DLoadImage(IntPtr tex, IntPtr data, bool markNonReadable);
+
     }
 }

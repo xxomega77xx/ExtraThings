@@ -2,13 +2,14 @@
 using BepInEx.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
+using Hazel;
 using Reactor.Extensions;
 using System;
 using System.Linq;
 using System.Reflection;
 using UnhollowerBaseLib;
 using UnityEngine;
-
+//Some methods and code snatched from TOU so thanks to those guys for that
 namespace ExtraButtons
 {
     [BepInPlugin(Id, "ExtraButtons", Version)]
@@ -29,14 +30,21 @@ namespace ExtraButtons
         public static float frequency = 440;
         public override void Load()
         {
-            
+
             Ready = CreateSprite("ExtraButtons.Assets.ready_button.png");
             NotReady = CreateSprite("ExtraButtons.Assets.notreadybutton.png");
             RaiseHand = CreateSprite("ExtraButtons.Assets.raise_hand_glow_button.png");
             MeetingOverlay = CreateSprite("ExtraButtons.Assets.hand_raise_overlay.png");
-            
 
             Harmony.PatchAll();
+        }
+
+        [HarmonyPatch(typeof(MeetingHud))]
+        public class GetPlayersinMeeting
+        {
+            public static Il2CppReferenceArray<PlayerVoteArea> values;
+
+
         }
 
         [HarmonyPatch(typeof(LobbyBehaviour), nameof(LobbyBehaviour.Start))]
@@ -60,7 +68,7 @@ namespace ExtraButtons
 
                     var ReadyButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                     ReadyButton.graphic.sprite = Ready;
-                    
+
                     UnityEngine.Object.Destroy(ReadyButton.GetComponentInChildren<TextTranslatorTMP>());
                     CHLog.Log(LogLevel.Info, "Button Grabbed");
                     ReadyButton.name = "ReadyButton";
@@ -151,9 +159,13 @@ namespace ExtraButtons
                 UnityEngine.Object.Destroy(ReadyButton);
                 CHLog.Log(LogLevel.Info, "ReadyButton Destroyed.");
 
-                PlayerControl.LocalPlayer.CheckName($"<color=white>{currentName}");
+                PlayerControl.LocalPlayer.CheckName($"{currentName}");
             }
         }
+
+
+
+
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
         public class OnMeetingStart
@@ -162,11 +174,6 @@ namespace ExtraButtons
             {
                 var CHLog = new ManualLogSource("ExtraButtons");
                 BepInEx.Logging.Logger.Sources.Add(CHLog);
-                
-
-                var currentName = PlayerControl.LocalPlayer.name;
-                var playerstate = __instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId);
-                var currentBackground = playerstate.Background.sprite;                
                 var RaiseLowerHandButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                 RaiseLowerHandButton.graphic.sprite = RaiseHand;
                 UnityEngine.Object.Destroy(RaiseLowerHandButton.GetComponentInChildren<TextTranslatorTMP>());
@@ -174,7 +181,7 @@ namespace ExtraButtons
                 RaiseLowerHandButton.name = "RaiseHandButton";
                 RaiseLowerHandButton.OverrideText("");
                 RaiseLowerHandButton.OverrideColor(Color.green);
-                if (!playerstate.AmDead)
+                if (!PlayerControl.LocalPlayer.Data.IsDead)
                 {
                     RaiseLowerHandButton.Show();
                     RaiseLowerHandButton.enabled = true;
@@ -183,25 +190,36 @@ namespace ExtraButtons
                 RaiseLowerHandButton.graphic.SetCooldownNormalizedUvs();
                 var passiveButton = RaiseLowerHandButton.GetComponent<PassiveButton>();
                 passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+                //TODO: Needs to display that your hand is up on your nameplate and everyone else can see it
+                //I can get it to work locally but it does not show up for anyone else
+                //Has to be RPC that is needed but I am noob when it comes to that ugh
                 passiveButton.OnClick.AddListener((Action)(() =>
                 {
                     
-                    if (RaiseLowerHandButton.graphic.color == Color.green)
+                    foreach (var player in MeetingHud.Instance.playerStates)
                     {
-                        playerstate.Overlay.gameObject.SetActive(true);
-                        playerstate.Overlay.sprite = MeetingOverlay;
-                        RaiseLowerHandButton.OverrideColor(Color.red);
-                        SoundManager.Instance.PlaySound(__instance.VoteSound, false, 10);
-                    }
-                    else
-                    {
-                        playerstate.Overlay.gameObject.SetActive(false);
-                        RaiseLowerHandButton.OverrideColor(Color.green);
-
+                        if (RaiseLowerHandButton.graphic.color == Color.green)
+                        {
+                            CHLog.LogInfo($"Setting {player.name} meeting overlay");
+                            player.gameObject.SetActive(true);
+                            player.Overlay.sprite = MeetingOverlay;
+                            RaiseLowerHandButton.OverrideColor(Color.red);
+                            SoundManager.Instance.PlaySound(__instance.VoteSound, false, 10);
+                            var writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId,
+                            (byte)CustomRpc.setOverlay, SendOption.Reliable, -1);
+                            writer.Write(PlayerControl.LocalPlayer.PlayerId);
+                            writer.Write(player.TargetPlayerId);
+                            AmongUsClient.Instance.FinishRpcImmediately(writer);
+                        }
+                        else
+                        {
+                            player.Overlay.gameObject.SetActive(false);
+                            RaiseLowerHandButton.OverrideColor(Color.green);
+                        };
                     }
                 }
                 ));
-               
+
             }
         }
 

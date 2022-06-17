@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static ExtraButtons.Main;
+using static ExtraButtons.ExtraButtonsPlugin;
 
 namespace ExtraButtons
 {
@@ -18,9 +18,9 @@ namespace ExtraButtons
                 //if (callId >= 43) //System.Console.WriteLine("Received " + callId);
                 byte readByte, readByte1, readByte2;
                 sbyte readSByte, readSByte2;
-                switch ((CustomRpc)callId)
+                switch ((CustomRpcCalls)callId)
                 {
-                    case CustomRpc.setOverlay:
+                    case CustomRpcCalls.setOverlay:
                         readSByte = reader.ReadSByte();
                         GetPlayersinMeeting.values = MeetingHud.Instance.playerStates;
                         break;

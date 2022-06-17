@@ -3,7 +3,9 @@ using BepInEx.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
 using Hazel;
+using Reactor;
 using Reactor.Extensions;
+using Reactor.Networking.MethodRpc;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +16,8 @@ namespace ExtraButtons
 {
     [BepInPlugin(Id, "ExtraButtons", Version)]
     [BepInProcess("Among Us.exe")]
-    public class Main : BasePlugin
+    [BepInDependency(ReactorPlugin.Id)]
+    public class ExtraButtonsPlugin : BasePlugin
     {
 
         public const string Version = "1.0.0";
@@ -163,17 +166,31 @@ namespace ExtraButtons
             }
         }
 
+        [MethodRpc((uint)CustomRpcCalls.setOverlay)]
+        public static void RpcSetOverlay(PlayerControl player, MeetingHud meeting)
+        {
+            var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
+            Logger<ExtraButtonsPlugin>.Info($"Setting overlay for {player.name}");
+            Logger<ExtraButtonsPlugin>.Info($"Setting {player.name} meeting overlay");
+            playerstate.gameObject.SetActive(true);
+            playerstate.Overlay.sprite = MeetingOverlay;
+            SoundManager.Instance.PlaySound(meeting.VoteSound, false, 10);
+        }
 
-
+        [MethodRpc((uint)CustomRpcCalls.removeOverlay)]
+        public static void RpcRemoveOverlay(PlayerControl player, MeetingHud meeting)
+        {
+            Logger<ExtraButtonsPlugin>.Info("Removing overlay");
+            var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
+            playerstate.Overlay.gameObject.SetActive(false);
+        }
 
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
         public class OnMeetingStart
         {
-            public static void Prefix(MeetingHud __instance)
-            {
-                var CHLog = new ManualLogSource("ExtraButtons");
-                BepInEx.Logging.Logger.Sources.Add(CHLog);
+            public static void Postfix(MeetingHud __instance)
+            {                
                 var RaiseLowerHandButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                 RaiseLowerHandButton.graphic.sprite = RaiseHand;
                 UnityEngine.Object.Destroy(RaiseLowerHandButton.GetComponentInChildren<TextTranslatorTMP>());
@@ -195,28 +212,17 @@ namespace ExtraButtons
                 //Has to be RPC that is needed but I am noob when it comes to that ugh
                 passiveButton.OnClick.AddListener((Action)(() =>
                 {
-                    
-                    foreach (var player in MeetingHud.Instance.playerStates)
+                    if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
-                        if (RaiseLowerHandButton.graphic.color == Color.green)
-                        {
-                            CHLog.LogInfo($"Setting {player.name} meeting overlay");
-                            player.gameObject.SetActive(true);
-                            player.Overlay.sprite = MeetingOverlay;
-                            RaiseLowerHandButton.OverrideColor(Color.red);
-                            SoundManager.Instance.PlaySound(__instance.VoteSound, false, 10);
-                            var writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId,
-                            (byte)CustomRpc.setOverlay, SendOption.Reliable, -1);
-                            writer.Write(PlayerControl.LocalPlayer.PlayerId);
-                            writer.Write(player.TargetPlayerId);
-                            AmongUsClient.Instance.FinishRpcImmediately(writer);
-                        }
-                        else
-                        {
-                            player.Overlay.gameObject.SetActive(false);
-                            RaiseLowerHandButton.OverrideColor(Color.green);
-                        };
+                        RpcSetOverlay(PlayerControl.LocalPlayer, __instance);
+                        RaiseLowerHandButton.OverrideColor(Color.red);
                     }
+                    else
+                    {
+                        RpcRemoveOverlay(PlayerControl.LocalPlayer, __instance);
+                        RaiseLowerHandButton.OverrideColor(Color.green);
+                    };
+
                 }
                 ));
 

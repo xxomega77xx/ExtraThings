@@ -173,6 +173,7 @@ namespace ExtraButtons
             Logger<ExtraButtonsPlugin>.Info($"Setting overlay for {player.name}");
             Logger<ExtraButtonsPlugin>.Info($"Setting {player.name} meeting overlay");
             playerstate.gameObject.SetActive(true);
+            playerstate.Overlay.gameObject.SetActive(true);
             playerstate.Overlay.sprite = MeetingOverlay;
             SoundManager.Instance.PlaySound(meeting.VoteSound, false, 10);
         }
@@ -180,7 +181,7 @@ namespace ExtraButtons
         [MethodRpc((uint)CustomRpcCalls.removeOverlay)]
         public static void RpcRemoveOverlay(PlayerControl player, MeetingHud meeting)
         {
-            Logger<ExtraButtonsPlugin>.Info("Removing overlay");
+            Logger<ExtraButtonsPlugin>.Info($"Removing {player.name} overlay");
             var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
             playerstate.Overlay.gameObject.SetActive(false);
         }
@@ -189,7 +190,7 @@ namespace ExtraButtons
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
         public class OnMeetingStart
         {
-            public static void Postfix(MeetingHud __instance)
+            public static void Prefix(MeetingHud __instance)
             {                
                 var RaiseLowerHandButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                 RaiseLowerHandButton.graphic.sprite = RaiseHand;
@@ -207,9 +208,6 @@ namespace ExtraButtons
                 RaiseLowerHandButton.graphic.SetCooldownNormalizedUvs();
                 var passiveButton = RaiseLowerHandButton.GetComponent<PassiveButton>();
                 passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-                //TODO: Needs to display that your hand is up on your nameplate and everyone else can see it
-                //I can get it to work locally but it does not show up for anyone else
-                //Has to be RPC that is needed but I am noob when it comes to that ugh
                 passiveButton.OnClick.AddListener((Action)(() =>
                 {
                     if (RaiseLowerHandButton.graphic.color == Color.green)

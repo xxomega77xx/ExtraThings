@@ -199,7 +199,7 @@ namespace ExtraButtons
                 RaiseLowerHandButton.name = "RaiseHandButton";
                 RaiseLowerHandButton.OverrideText("");
                 RaiseLowerHandButton.OverrideColor(Color.green);
-                if (!PlayerControl.LocalPlayer.Data.IsDead)
+                if (!PlayerControl.LocalPlayer.Data.IsDead || !__instance.amDead)
                 {
                     RaiseLowerHandButton.Show();
                     RaiseLowerHandButton.enabled = true;
@@ -227,17 +227,30 @@ namespace ExtraButtons
             }
         }
 
+
+
+        [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Update))]
+        public class OnMeetingDead
+        {
+            public static void Postfix(MeetingHud __instance)
+            {
+                if (PlayerControl.LocalPlayer.Data.IsDead || __instance.amDead)
+                {
+                    GameObject RaiseHandButton;
+                    RaiseHandButton = GameObject.Find("RaiseHandButton");
+                    UnityEngine.Object.Destroy(RaiseHandButton);
+                }
+            }
+        }
+
+
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Close))]
         public class OnMeetingDestroy
         {
             public static void Postfix(MeetingHud __instance)
             {
-                GameObject LowerHandButton;
                 GameObject RaiseHandButton;
-
-                LowerHandButton = GameObject.Find("LowerHandButton");
                 RaiseHandButton = GameObject.Find("RaiseHandButton");
-                UnityEngine.Object.Destroy(LowerHandButton);
                 UnityEngine.Object.Destroy(RaiseHandButton);
             }
         }

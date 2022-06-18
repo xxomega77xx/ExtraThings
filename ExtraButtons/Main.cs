@@ -2,7 +2,6 @@
 using BepInEx.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
-using Hazel;
 using Reactor;
 using Reactor.Extensions;
 using Reactor.Networking.MethodRpc;
@@ -23,14 +22,12 @@ namespace ExtraButtons
         public const string Version = "1.0.0";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
+
         public static Sprite Ready;
         public static Sprite NotReady;
         public static Sprite RaiseHand;
-        public static Sprite LowerHand;
         public static Sprite MeetingOverlay;
-        public static int position = 0;
-        public static int samplerate = 44100;
-        public static float frequency = 440;
+
         public override void Load()
         {
 
@@ -166,25 +163,7 @@ namespace ExtraButtons
             }
         }
 
-        [MethodRpc((uint)CustomRpcCalls.setOverlay)]
-        public static void RpcSetOverlay(PlayerControl player, MeetingHud meeting)
-        {
-            var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
-            Logger<ExtraButtonsPlugin>.Info($"Setting overlay for {player.name}");
-            Logger<ExtraButtonsPlugin>.Info($"Setting {player.name} meeting overlay");
-            playerstate.gameObject.SetActive(true);
-            playerstate.Overlay.gameObject.SetActive(true);
-            playerstate.Overlay.sprite = MeetingOverlay;
-            SoundManager.Instance.PlaySound(meeting.VoteSound, false, 10);
-        }
-
-        [MethodRpc((uint)CustomRpcCalls.removeOverlay)]
-        public static void RpcRemoveOverlay(PlayerControl player, MeetingHud meeting)
-        {
-            Logger<ExtraButtonsPlugin>.Info($"Removing {player.name} overlay");
-            var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
-            playerstate.Overlay.gameObject.SetActive(false);
-        }
+        
 
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
@@ -212,12 +191,12 @@ namespace ExtraButtons
                 {
                     if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
-                        RpcSetOverlay(PlayerControl.LocalPlayer, __instance);
+                        CustomRpcMethods.RpcSetOverlay(PlayerControl.LocalPlayer, __instance,MeetingOverlay);
                         RaiseLowerHandButton.OverrideColor(Color.red);
                     }
                     else
                     {
-                        RpcRemoveOverlay(PlayerControl.LocalPlayer, __instance);
+                        CustomRpcMethods.RpcRemoveOverlay(PlayerControl.LocalPlayer, __instance);
                         RaiseLowerHandButton.OverrideColor(Color.green);
                     };
 
@@ -226,8 +205,6 @@ namespace ExtraButtons
 
             }
         }
-
-
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Update))]
         public class OnMeetingDead
@@ -242,7 +219,6 @@ namespace ExtraButtons
                 }
             }
         }
-
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Close))]
         public class OnMeetingDestroy

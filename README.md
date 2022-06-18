@@ -7,3 +7,7 @@ Ready/Not Ready Button
 Raise Hand Button   
 
 ![raise_hand_glow_button](https://user-images.githubusercontent.com/13647821/174443549-7f89c31a-05e5-456d-84f0-b2809d7b7c7f.png)
+
+
+Credits   
+Art by Bermiester

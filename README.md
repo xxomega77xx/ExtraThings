@@ -10,4 +10,4 @@ Raise Hand Button
 
 
 Credits   
-Art by Bermiester
+Art by Bergmiester

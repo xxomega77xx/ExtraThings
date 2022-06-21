@@ -19,7 +19,7 @@ namespace ExtraButtons
     public class ExtraButtonsPlugin : BasePlugin
     {
 
-        public const string Version = "1.0.0";
+        public const string Version = "1.1.0";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
 
@@ -37,14 +37,6 @@ namespace ExtraButtons
             MeetingOverlay = CreateSprite("ExtraButtons.Assets.hand_raise_overlay.png");
 
             Harmony.PatchAll();
-        }
-
-        [HarmonyPatch(typeof(MeetingHud))]
-        public class GetPlayersinMeeting
-        {
-            public static Il2CppReferenceArray<PlayerVoteArea> values;
-
-
         }
 
         [HarmonyPatch(typeof(LobbyBehaviour), nameof(LobbyBehaviour.Start))]
@@ -161,9 +153,7 @@ namespace ExtraButtons
 
                 PlayerControl.LocalPlayer.CheckName($"{currentName}");
             }
-        }
-
-        
+        }       
 
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
@@ -191,7 +181,7 @@ namespace ExtraButtons
                 {
                     if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
-                        CustomRpcMethods.RpcSetOverlay(PlayerControl.LocalPlayer, __instance,MeetingOverlay);
+                        CustomRpcMethods.RpcSetOverlay(PlayerControl.LocalPlayer, __instance);
                         RaiseLowerHandButton.OverrideColor(Color.red);
                     }
                     else

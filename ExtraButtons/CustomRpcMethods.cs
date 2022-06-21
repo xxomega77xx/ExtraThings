@@ -8,14 +8,14 @@ namespace ExtraButtons
     public static class CustomRpcMethods
     {
         [MethodRpc((uint)CustomRpcCalls.setOverlay)]
-        public static void RpcSetOverlay(PlayerControl player, MeetingHud meeting, Sprite meetingOverlay)
+        public static void RpcSetOverlay(PlayerControl player, MeetingHud meeting)
         {
             var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
             Logger<ExtraButtonsPlugin>.Info($"Setting overlay for {player.name}");
             Logger<ExtraButtonsPlugin>.Info($"Setting {player.name} meeting overlay");
             playerstate.gameObject.SetActive(true);
             playerstate.Overlay.gameObject.SetActive(true);
-            playerstate.Overlay.sprite = meetingOverlay;
+            playerstate.Overlay.sprite = ExtraButtonsPlugin.MeetingOverlay;
             SoundManager.Instance.PlaySound(meeting.VoteSound, false, 10);
         }
 

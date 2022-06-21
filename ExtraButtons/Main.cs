@@ -27,10 +27,12 @@ namespace ExtraButtons
         public static Sprite NotReady;
         public static Sprite RaiseHand;
         public static Sprite MeetingOverlay;
+        public static AudioClip CustomAudio;
+
 
         public override void Load()
         {
-
+            LoadAssetBundle();
             Ready = CreateSprite("ExtraButtons.Assets.ready_button.png");
             NotReady = CreateSprite("ExtraButtons.Assets.notreadybutton.png");
             RaiseHand = CreateSprite("ExtraButtons.Assets.raise_hand_glow_button.png");
@@ -238,6 +240,7 @@ namespace ExtraButtons
             return sprite;
 
         }
+
         public static void LoadImage(Texture2D tex, byte[] data, bool markNonReadable)
         {
             _iCallLoadImage ??= IL2CPP.ResolveICall<DLoadImage>("UnityEngine.ImageConversion::LoadImage");
@@ -246,5 +249,14 @@ namespace ExtraButtons
         }
         private delegate bool DLoadImage(IntPtr tex, IntPtr data, bool markNonReadable);
 
+        private static AssetBundle AssetBundle;
+
+        public static void LoadAssetBundle()        {
+            byte[] bundleRead = Assembly.GetCallingAssembly().GetManifestResourceStream("ExtraButtons.Assets.audioassets").ReadFully();
+            AssetBundle = AssetBundle.LoadFromMemory(bundleRead);}
+        public static UnityEngine.Object LoadAsset(string name)
+            => AssetBundle.LoadAsset(name);
+        public static AudioClip GetAudioClip(string name)
+                => LoadAsset(name).Cast<GameObject>().GetComponent<AudioSource>().clip;
     }
 }

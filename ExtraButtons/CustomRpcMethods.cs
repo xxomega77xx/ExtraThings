@@ -16,7 +16,7 @@ namespace ExtraButtons
             playerstate.gameObject.SetActive(true);
             playerstate.Overlay.gameObject.SetActive(true);
             playerstate.Overlay.sprite = ExtraButtonsPlugin.MeetingOverlay;
-            SoundManager.Instance.PlaySound(meeting.VoteSound, false, 10);
+            SoundManager.Instance.PlaySound(ExtraButtonsPlugin.GetAudioClip("AlarmClip"), false, 10);
         }
 
         [MethodRpc((uint)CustomRpcCalls.removeOverlay)]

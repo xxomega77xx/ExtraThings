@@ -19,7 +19,7 @@ namespace ExtraButtons
     public class ExtraButtonsPlugin : BasePlugin
     {
 
-        public const string Version = "1.1.0";
+        public const string Version = "1.1.1";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
 
@@ -64,21 +64,14 @@ namespace ExtraButtons
                     ReadyButton.graphic.sprite = Ready;
 
                     UnityEngine.Object.Destroy(ReadyButton.GetComponentInChildren<TextTranslatorTMP>());
-                    CHLog.Log(LogLevel.Info, "Button Grabbed");
                     ReadyButton.name = "ReadyButton";
-                    CHLog.Log(LogLevel.Info, "button name set");
                     ReadyButton.OverrideText("");
-                    CHLog.Log(LogLevel.Info, "button text set");
                     ReadyButton.OverrideColor(color: Color.green);
-                    CHLog.Log(LogLevel.Info, "button color set");
                     ReadyButton.transform.localPosition = new Vector3((float)ReadyButton.transform.localPosition.x - 2f, (float)ReadyButton.gameObject.transform.localPosition.y, (float)ReadyButton.gameObject.transform.position.z);
-                    CHLog.Log(LogLevel.Info, "button position set");
+                    
                     ReadyButton.graphic.SetCooldownNormalizedUvs();
-                    CHLog.Log(LogLevel.Info, " button cooldown set");
                     var passiveButton = ReadyButton.GetComponent<PassiveButton>();
-                    CHLog.Log(LogLevel.Info, "passive button component Grabbed");
                     passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-                    CHLog.Log(LogLevel.Info, "onclick event created");
                     passiveButton.OnClick.AddListener((Action)(() =>
                     {
 
@@ -88,17 +81,12 @@ namespace ExtraButtons
                             var modifiedName = currentName.Split(">", StringSplitOptions.RemoveEmptyEntries);
                             if (ReadyButton.graphic.color == Color.green)
                             {
-                                CHLog.Log(LogLevel.Info, $"Current name : {modifiedName[1]}");
                                 PlayerControl.LocalPlayer.CheckName($"<color=green>{modifiedName[1]}");
-                                CHLog.Log(LogLevel.Info, "Button Clicked player set to green");
                                 ReadyButton.OverrideColor(Color.red);
                                 ReadyButton.graphic.sprite = NotReady;
                             }
                             else
                             {
-                                CHLog.Log(LogLevel.Info, $"Current name : {modifiedName[1]}");
-                                CHLog.Log(LogLevel.Info, "Button Clicked player set to red");
-                                CHLog.Log(LogLevel.Info, $"Button text {ReadyButton.buttonLabelText.text}");
                                 PlayerControl.LocalPlayer.CheckName($"<color=red>{modifiedName[1]}");
                                 ReadyButton.graphic.sprite = Ready;
                                 ReadyButton.OverrideColor(Color.green);
@@ -109,14 +97,11 @@ namespace ExtraButtons
                             if (ReadyButton.graphic.color == Color.green)
                             {
                                 PlayerControl.LocalPlayer.CheckName($"<color=green>{currentName}");
-                                CHLog.Log(LogLevel.Info, "Button Clicked player set to green");
                                 ReadyButton.OverrideColor(Color.red);
                                 ReadyButton.graphic.sprite = NotReady;
                             }
                             else
                             {
-                                CHLog.Log(LogLevel.Info, "Button Clicked player set to red");
-                                CHLog.Log(LogLevel.Info, $"Button text {ReadyButton.buttonLabelText.text}");
                                 PlayerControl.LocalPlayer.CheckName($"<color=red>{currentName}");
                                 ReadyButton.OverrideColor(Color.green);
                                 ReadyButton.graphic.sprite = Ready;
@@ -135,6 +120,8 @@ namespace ExtraButtons
                     throw;
                 }
             }
+
+            
         }
 
         [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.OnDestroy))]
@@ -149,9 +136,7 @@ namespace ExtraButtons
                 BepInEx.Logging.Logger.Sources.Add(CHLog);
 
                 ReadyButton = GameObject.Find("ReadyButton");
-                CHLog.Log(LogLevel.Info, "Attempting to destroy readybutton");
                 UnityEngine.Object.Destroy(ReadyButton);
-                CHLog.Log(LogLevel.Info, "ReadyButton Destroyed.");
 
                 PlayerControl.LocalPlayer.CheckName($"{currentName}");
             }
@@ -162,7 +147,14 @@ namespace ExtraButtons
         public class OnMeetingStart
         {
             public static void Prefix(MeetingHud __instance)
-            {                
+            {
+
+                CreateRaisHandButton();
+                
+            }
+
+            public static void CreateRaisHandButton()
+            {
                 var RaiseLowerHandButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
                 RaiseLowerHandButton.graphic.sprite = RaiseHand;
                 UnityEngine.Object.Destroy(RaiseLowerHandButton.GetComponentInChildren<TextTranslatorTMP>());
@@ -170,7 +162,7 @@ namespace ExtraButtons
                 RaiseLowerHandButton.name = "RaiseHandButton";
                 RaiseLowerHandButton.OverrideText("");
                 RaiseLowerHandButton.OverrideColor(Color.green);
-                if (!PlayerControl.LocalPlayer.Data.IsDead || !__instance.amDead)
+                if (!PlayerControl.LocalPlayer.Data.IsDead || !MeetingHud.Instance.amDead)
                 {
                     RaiseLowerHandButton.Show();
                     RaiseLowerHandButton.enabled = true;
@@ -183,18 +175,42 @@ namespace ExtraButtons
                 {
                     if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
-                        CustomRpcMethods.RpcSetOverlay(PlayerControl.LocalPlayer, __instance);
+                        CustomRpcMethods.RpcSetOverlay(PlayerControl.LocalPlayer, MeetingHud.Instance);
                         RaiseLowerHandButton.OverrideColor(Color.red);
                     }
                     else
                     {
-                        CustomRpcMethods.RpcRemoveOverlay(PlayerControl.LocalPlayer, __instance);
+                        CustomRpcMethods.RpcRemoveOverlay(PlayerControl.LocalPlayer, MeetingHud.Instance);
                         RaiseLowerHandButton.OverrideColor(Color.green);
                     };
 
                 }
                 ));
+            }
 
+            public static void CreatePlayerButtons(string BtnAudioClipName, string BtnObjName, Sprite BtnImage)
+            {
+                var customAudioButton = UnityEngine.Object.Instantiate(HudManager.Instance.UseButton, HudManager.Instance.UseButton.transform.parent);
+                customAudioButton.graphic.sprite = BtnImage;
+                UnityEngine.Object.Destroy(customAudioButton.GetComponentInChildren<TextTranslatorTMP>());
+                customAudioButton.transform.localPosition = new Vector3((float)customAudioButton.transform.localPosition.x - 10f, (float)customAudioButton.gameObject.transform.localPosition.y, (float)customAudioButton.gameObject.transform.position.z);
+                customAudioButton.name = BtnObjName;
+                customAudioButton.OverrideText("");
+                customAudioButton.OverrideColor(Color.green);
+                if (!PlayerControl.LocalPlayer.Data.IsDead || !MeetingHud.Instance.amDead)
+                {
+                    customAudioButton.Show();
+                    customAudioButton.enabled = true;
+                    customAudioButton.Awake();
+                }
+                customAudioButton.graphic.SetCooldownNormalizedUvs();
+                var passiveButton = customAudioButton.GetComponent<PassiveButton>();
+                passiveButton.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
+                passiveButton.OnClick.AddListener((Action)(() =>
+                {
+                    CustomRpcMethods.RpcPlayCustomAudio(PlayerControl.LocalPlayer, MeetingHud.Instance, BtnAudioClipName);
+                }
+                ));
             }
         }
 

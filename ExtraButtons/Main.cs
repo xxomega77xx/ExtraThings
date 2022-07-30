@@ -17,7 +17,7 @@ namespace ExtraButtons
     public class ExtraButtonsPlugin : BasePlugin
     {
 
-        public const string Version = "1.3.0";
+        public const string Version = "1.3.1";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
 

@@ -2,8 +2,7 @@
 using BepInEx.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
-using Reactor;
-using Reactor.Extensions;
+using Hazel;
 using System;
 using System.Reflection;
 using UnhollowerBaseLib;
@@ -13,7 +12,6 @@ namespace ExtraButtons
 {
     [BepInPlugin(Id, "ExtraButtons", Version)]
     [BepInProcess("Among Us.exe")]
-    [BepInDependency(ReactorPlugin.Id)]
     public class ExtraButtonsPlugin : BasePlugin
     {
 
@@ -173,11 +171,15 @@ namespace ExtraButtons
                 {
                     if (RaiseLowerHandButton.graphic.color == Color.green)
                     {
+                        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRpcCalls.setOverlay, Hazel.SendOption.Reliable, -1);
+                        AmongUsClient.Instance.FinishRpcImmediately(writer);
                         CustomRpcMethods.RpcSetOverlay(PlayerControl.LocalPlayer, MeetingHud.Instance);
                         RaiseLowerHandButton.OverrideColor(Color.red);
                     }
                     else
                     {
+                        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRpcCalls.removeOverlay, Hazel.SendOption.Reliable, -1);
+                        AmongUsClient.Instance.FinishRpcImmediately(writer);
                         CustomRpcMethods.RpcRemoveOverlay(PlayerControl.LocalPlayer, MeetingHud.Instance);
                         RaiseLowerHandButton.OverrideColor(Color.green);
                     };

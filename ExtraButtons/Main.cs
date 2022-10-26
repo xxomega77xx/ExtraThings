@@ -1,13 +1,15 @@
 ﻿using BepInEx;
-using BepInEx.IL2CPP;
+using BepInEx.Unity.IL2CPP;
 using BepInEx.Logging;
 using HarmonyLib;
 using Reactor;
-using Reactor.Extensions;
+using Reactor.Utilities.Extensions;
+using Reactor.Utilities;
 using System;
 using System.Reflection;
-using UnhollowerBaseLib;
 using UnityEngine;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 //Some methods and code snatched from TOU so thanks to those guys for that
 namespace ExtraButtons
 {
@@ -17,7 +19,7 @@ namespace ExtraButtons
     public class ExtraButtonsPlugin : BasePlugin
     {
 
-        public const string Version = "1.4.1";
+        public const string Version = "2.0.0";
         public const string Id = "ExtraButtons.pack";
         public Harmony Harmony { get; } = new Harmony(Id);
 
@@ -244,7 +246,7 @@ namespace ExtraButtons
             var pivot = new Vector2(0.5f, 0.5f);
 
             var assembly = Assembly.GetExecutingAssembly();
-            var tex = GUIExtensions.CreateEmptyTexture();
+            var tex = CanvasUtilities.CreateEmptyTexture();
             var imageStream = assembly.GetManifestResourceStream(name);
             var img = imageStream.ReadFully();
             LoadImage(tex, img, true);

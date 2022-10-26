@@ -1,4 +1,4 @@
-﻿using Reactor.Networking.MethodRpc;
+﻿using Reactor.Networking.Attributes;
 using System.Linq;
 
 

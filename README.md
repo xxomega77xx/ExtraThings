@@ -1,4 +1,4 @@
-# ExtraButtons
+# ExtraThings
 A QoL mod for Among us that adds a ready button during lobbys and a Raise hand button during meetings, raise hand also plays a sound to alert the your hand is raised   
 Ready/Not Ready Button   
 ![ready_button](https://user-images.githubusercontent.com/13647821/174443517-d0030bc3-711e-4ce0-a0d3-f35dac95d4f3.png)

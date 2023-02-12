@@ -2,7 +2,7 @@
 using System.Linq;
 
 
-namespace ExtraButtons
+namespace ExtraThings
 {
     public static class CustomRpcMethods
     {
@@ -12,8 +12,8 @@ namespace ExtraButtons
             var playerstate = meeting.playerStates.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
             playerstate.gameObject.SetActive(true);
             playerstate.Overlay.gameObject.SetActive(true);
-            playerstate.Overlay.sprite = ExtraButtonsPlugin.MeetingOverlay;
-            SoundManager.Instance.PlaySound(ExtraButtonsPlugin.GetAudioClip("AlarmClip"), false, 10);
+            playerstate.Overlay.sprite = ExtraThingsPlugin.MeetingOverlay;
+            SoundManager.Instance.PlaySound(ExtraThingsPlugin.GetAudioClip("AlarmClip"), false, 10);
         }
 
         [MethodRpc((uint)CustomRpcCalls.removeOverlay)]
@@ -25,7 +25,7 @@ namespace ExtraButtons
         [MethodRpc((uint)CustomRpcCalls.playCustomAudio)]
         public static void RpcPlayCustomAudio(PlayerControl player, MeetingHud meeting, string CustomClipName)
         {
-            SoundManager.Instance.PlaySound(ExtraButtonsPlugin.GetAudioClip(CustomClipName),false, 10);
+            SoundManager.Instance.PlaySound(ExtraThingsPlugin.GetAudioClip(CustomClipName),false, 10);
         }
     }
 }

@@ -28,6 +28,7 @@
 		<PackageReference Include="BepInEx.AutoPlugin" Version="1.1.0" PrivateAssets="all" />
 		<EmbeddedResource Include="Assets\*.png" />
 		<EmbeddedResource Include="Assets\audioassets" />
+    <EmbeddedResource Include="Assets\hatassetbundle" />
 	</ItemGroup>
 
 	<ItemGroup>

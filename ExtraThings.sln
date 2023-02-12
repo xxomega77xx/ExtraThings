@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtraThings", "ExtraButtons\ExtraThings.csproj", "{6AE197A3-D943-4EF9-BBE6-8B3D8628ED04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtraThings", "ExtraThings\ExtraThings.csproj", "{6AE197A3-D943-4EF9-BBE6-8B3D8628ED04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

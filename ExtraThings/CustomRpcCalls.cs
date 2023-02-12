@@ -1,4 +1,4 @@
-﻿namespace ExtraButtons
+﻿namespace ExtraThings
 {
     public enum CustomRpcCalls : uint
     {

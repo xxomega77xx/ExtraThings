@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace ExtraButtons
+namespace ExtraThings
 {
     public static class Extensions
     {
